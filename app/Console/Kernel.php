@@ -25,6 +25,13 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
+        $schedule->call(function () {
+            $parser = new \App\Http\Controllers\ParserController();
+            $parser->parse();
+        })
+            ->everyFiveMinutes()
+            ->name('parse_trigger')
+            ->withoutOverlapping();;
     }
 
     /**

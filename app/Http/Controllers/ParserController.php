@@ -3,25 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
-use App\Models\ParserLog;
-use GuzzleHttp\Client;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class ParserController extends Controller
 {
-    /**
-     * Админ-панель для наблюдения результатов;
-     * @return \Illuminate\Contracts\View\View
-     */
-    public function index()
-    {
-        $paginatedArticles = Article::orderByDesc('id')->paginate(10);
-        $paginatedLogs = ParserLog::orderByDesc('id')->paginate(10);
-
-        return view('welcome', compact('paginatedArticles', 'paginatedLogs'));
-    }
-
     /**
      *  Парсит резульатотов заданного URL в случае ответа 200, Ok;
      *  Генерирует и создает логи;
@@ -38,19 +24,16 @@ class ParserController extends Controller
         $method = 'GET';
         $url = 'http://static.feed.rbc.ru/rbc/logical/footer/news.rss';
 
-        /** @var  $client  \GuzzleHttp\Client */
-        $client = new Client();
-
         //Устанавливаем время запроса и сделаем запрос
         $requestTime = now();
-        $response = $client->request($method, $url);
+        //$response = $client->request($method, $url);
+        $response = Http::send($method, $url);
 
         // Параметры для логирования
-        $responseHttpCode = $response->getStatusCode();
-        $responseBody = $response->getBody();
+        $responseHttpCode = $response->status();
+        $responseBody = $response->body();
 
         //TODO::refractor Logging to midlleware or event class;
-
         // Логироваемся в БД
         DB::table('parser_logs')->insert([
             [
@@ -63,7 +46,7 @@ class ParserController extends Controller
         ]);
 
         // При получении успешного ответа от серсера приступаем прасированию;
-        if ($responseHttpCode >= 200 & $responseHttpCode < 300) {
+        if ($response->ok()) {
             //Конвертируем данные ответа в ХМЛ;
             $xml = simplexml_load_string($responseBody);
 

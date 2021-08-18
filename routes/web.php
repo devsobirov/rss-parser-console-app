@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ParserController;
+use App\Http\Controllers\AdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,5 +15,7 @@ use App\Http\Controllers\ParserController;
 |
 */
 
-Route::get('/', [ParserController::class, 'index']);
-Route::get('/parse', [ParserController::class, 'parse']);
+Route::get('/', [AdminController::class, 'index']);
+
+// Could be used for testing;
+//Route::get('/parse', [ParserController::class, 'parse']);
